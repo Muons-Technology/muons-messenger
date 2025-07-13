@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Muons Messenger (Offline)</title>
+  </head>
+  <body>
+    <h2>Muons Chat</h2>
+    <div id="chat"></div>
+    <input id="msg" placeholder="Type a message" autofocus />
+    <button onclick="send()">Send</button>
+
+    <script>
+      const ws = new WebSocket(`ws://${location.host}`);
+      const chat = document.getElementById("chat");
+
+      ws.onmessage = (event) => {
+        const p = document.createElement("p");
+        try {
+          // Check if it's a Blob (binary)
+          if (event.data instanceof Blob) {
+            const reader = new FileReader();
+            reader.onload = function () {
+              p.textContent = `🔁 ${reader.result}`;
+              chat.appendChild(p);
+            };
+            reader.readAsText(event.data);
+          } else {
+            p.textContent = `🔁 ${event.data}`;
+            chat.appendChild(p);
+          }
+        } catch (e) {
+          p.textContent = `❌ Failed to read message`;
+          chat.appendChild(p);
+        }
+      };
+
+      function send() {
+        const input = document.getElementById("msg");
+        const msg = input.value;
+
+        if (msg.trim()) {
+          ws.send(msg); // ✅ string only!
+          const p = document.createElement("p");
+          p.textContent = `🧍‍♂️ You: ${msg}`;
+          chat.appendChild(p);
+          input.value = "";
+        }
+      }
+    </script>
+  </body>
+</html>
